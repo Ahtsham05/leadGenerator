@@ -108,7 +108,7 @@ export function buildOpportunities(
       title: `AI assistant for ${niche.faqPhrase}`,
       serviceType: 'aiAssistant',
       reason:
-        'No chat widget was found, so questions outside business hours go unanswered on the site.',
+        'No chat widget was found on the site, so visitors can only get answers by calling, messaging or filling in a form.',
       evidence: [f.chatbot.evidence ?? 'No chat widget found'],
     });
   } else if (
@@ -129,7 +129,7 @@ export function buildOpportunities(
     out.push({
       title: 'Online deposits and payments',
       serviceType: 'payments',
-      reason: 'No online payment provider was detected, so deposits are likely taken offline.',
+      reason: 'No online payment provider or card fields were detected on the analysed pages.',
       evidence: [f.onlinePayment.evidence ?? 'No online payment provider found'],
     });
   }
