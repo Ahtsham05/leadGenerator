@@ -1,0 +1,13 @@
+{
+  "id": "https://example.com/",
+  "loadingExperience": {},
+  "lighthouseResult": {
+    "categories": { "performance": { "score": 0.71 } },
+    "audits": {
+      "largest-contentful-paint": { "numericValue": 2100 },
+      "cumulative-layout-shift": { "numericValue": 0.02 },
+      "server-response-time": { "numericValue": 410 },
+      "total-blocking-time": { "numericValue": 230 }
+    }
+  }
+}

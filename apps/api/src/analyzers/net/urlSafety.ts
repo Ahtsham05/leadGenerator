@@ -1,14 +1,15 @@
 import { lookup as dnsLookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 
-export type UrlCheck = { ok: true; url: URL } | { ok: false; error: string };
+export type UrlCheck = { ok: true; url: URL } | { ok: false; error: string; unsafe?: boolean };
 
 const BLOCKED_HOST_SUFFIXES = ['.localhost', '.local', '.internal', '.lan', '.home.arpa'];
 
 /**
  * Normalises user-supplied website input into an absolute http(s) URL.
  * Adds https:// when no scheme is given, lower-cases the host, drops fragments
- * and default ports, and rejects credentials and non-http(s) schemes.
+ * and default ports, and rejects credentials, non-http(s) schemes and local names.
+ * IP-address safety is enforced by `assertPublicHost`, which runs before every request.
  */
 export function normalizeUrl(input: string): UrlCheck {
   const raw = input.trim();
@@ -31,13 +32,10 @@ export function normalizeUrl(input: string): UrlCheck {
   if (!url.hostname) return { ok: false, error: 'URL has no host' };
   const host = url.hostname.toLowerCase().replace(/\.$/, '');
   if (host === 'localhost' || BLOCKED_HOST_SUFFIXES.some((s) => host.endsWith(s))) {
-    return { ok: false, error: 'Local hostnames are not allowed' };
+    return { ok: false, error: 'Local hostnames are not allowed', unsafe: true };
   }
   if (!isIP(stripBrackets(host)) && !host.includes('.')) {
-    return { ok: false, error: 'Hostname must be a public domain' };
-  }
-  if (isIP(stripBrackets(host)) && isPrivateIp(stripBrackets(host))) {
-    return { ok: false, error: 'Private or reserved IP addresses are not allowed' };
+    return { ok: false, error: 'Hostname must be a public domain', unsafe: true };
   }
   url.hostname = host;
   url.hash = '';

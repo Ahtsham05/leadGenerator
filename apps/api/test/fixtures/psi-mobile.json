@@ -1,0 +1,18 @@
+{
+  "id": "https://example.com/",
+  "loadingExperience": {
+    "metrics": {
+      "INTERACTION_TO_NEXT_PAINT": { "percentile": 312, "category": "AVERAGE" },
+      "EXPERIMENTAL_TIME_TO_FIRST_BYTE": { "percentile": 1450, "category": "AVERAGE" }
+    }
+  },
+  "lighthouseResult": {
+    "categories": { "performance": { "score": 0.27 } },
+    "audits": {
+      "largest-contentful-paint": { "numericValue": 7321.5 },
+      "cumulative-layout-shift": { "numericValue": 0.183 },
+      "server-response-time": { "numericValue": 980.2 },
+      "total-blocking-time": { "numericValue": 1240 }
+    }
+  }
+}

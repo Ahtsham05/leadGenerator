@@ -160,7 +160,7 @@ export function classifyBooking(
   // 2. Native booking forms.
   const evidence = obs.pages.flatMap(traitsOnPage);
   const vehicleChoice = obs.pages.filter((p) => p.role === 'booking').some(vehicleChoiceOnPage);
-  const priceShown = obs.pages.filter((p) => p.role === 'booking').some(priceOnPage);
+  const priceShown = obs.pages.some(priceOnPage);
   const bookingForms = evidence.filter(
     (e) =>
       !e.traits.isLogin &&
@@ -168,11 +168,15 @@ export function classifyBooking(
       !e.traits.isNewsletter &&
       (e.traits.hasDate || e.traits.hasPickupReturnLocation),
   );
+  // A "request a quote" style form (quote wording or a free-text message box) only collects
+  // a request; it counts as live booking only if it also shows prices or takes payment.
+  const isRequestStyle = (t: FormTraits) => t.hasQuoteWording || t.hasMessage;
   const good = bookingForms.find(
     (e) =>
       e.traits.hasDate &&
       (e.traits.hasVehicleSelection || vehicleChoice) &&
-      (e.traits.hasName || e.traits.hasEmail || e.traits.hasPhone || e.traits.hasPaymentFields),
+      (e.traits.hasName || e.traits.hasEmail || e.traits.hasPhone || e.traits.hasPaymentFields) &&
+      (!isRequestStyle(e.traits) || e.traits.hasPaymentFields || priceShown),
   );
   if (good) {
     const extras = [
