@@ -24,7 +24,7 @@ describe('buildOpportunities', () => {
   it('no booking + slow mobile + WordPress => modern rental website', () => {
     const ops = buildOpportunities(
       input({
-        technology: { cms: 'WordPress', builder: null },
+        technology: { cms: 'WordPress', builder: 'Elementor' },
         performance: { performanceStatus: 'ok', mobileScore: 31, lcpMs: 6000 },
         f: (f) => {
           f.onlineBooking.bookingQuality = 'none';
@@ -38,7 +38,7 @@ describe('buildOpportunities', () => {
       expect.arrayContaining([
         'No booking path found',
         'PageSpeed mobile score 31/100',
-        'Site built with WordPress',
+        'Site built with WordPress (Elementor)',
       ]),
     );
   });

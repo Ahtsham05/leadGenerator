@@ -16,8 +16,11 @@ const SLOW_MOBILE_BELOW = 50;
 /** Platforms where a rebuild is the natural pitch (template builders and classic CMSs). */
 const REBUILD_PLATFORMS = ['wordpress', 'wix', 'godaddy', 'squarespace', 'weebly', 'joomla'];
 
+/** "WordPress (Elementor)", "Wix", "WordPress"... */
 function platformOf(input: OpportunityInput): string | null {
-  return input.technology.builder ?? input.technology.cms;
+  const { cms, builder } = input.technology;
+  if (cms && builder) return `${cms} (${builder})`;
+  return builder ?? cms;
 }
 
 /**

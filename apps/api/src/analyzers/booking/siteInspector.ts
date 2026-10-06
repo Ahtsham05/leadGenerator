@@ -214,11 +214,12 @@ export async function inspectSite(
         }
         homepage.assets = extractAssets(html, homepage.finalUrl);
         homepage.hasViewportMeta = homepage.assets.hasViewportMeta;
-        const dims = await page.evaluate(() => ({
-          sw: Math.max(document.documentElement.scrollWidth, document.body?.scrollWidth ?? 0),
-          iw: window.innerWidth,
-        }));
-        homepage.horizontalOverflowPx = Math.max(0, dims.sw - dims.iw);
+        // Compare against the emulated device width: mobile emulation zooms the visual
+        // viewport out to fit wide content, so window.innerWidth is not reliable here.
+        const scrollWidth = await page.evaluate(() =>
+          Math.max(document.documentElement.scrollWidth, document.body?.scrollWidth ?? 0),
+        );
+        homepage.horizontalOverflowPx = Math.max(0, scrollWidth - MOBILE_VIEWPORT.width);
         try {
           const dir = path.join(opts.uploadsDir, 'screenshots');
           await mkdir(dir, { recursive: true });

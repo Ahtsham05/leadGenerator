@@ -82,6 +82,12 @@ function mergeSignatures(...lists: DetectedSignature[][]): DetectedSignature[] {
   return [...out.values()];
 }
 
+/** Human count of distinct pages analysed (static and rendered copies of a page count once). */
+function pageCount(pages: PageAssets[]): string {
+  const n = new Set(pages.map((p) => p.url.replace(/#.*$/, '').replace(/\/$/, ''))).size;
+  return n === 1 ? 'the homepage' : `${n} analysed pages`;
+}
+
 function statusFor(blocked: boolean, errors: number, reachable: boolean): AnalysisStatus {
   if (blocked) return 'blocked';
   if (!reachable) return 'partial';
@@ -142,7 +148,7 @@ export class AnalysisOrchestrator {
 
     const staticAssets: PageAssets | null =
       fetched?.ok && fetched.html
-        ? await stages.run('techDetector', () => extractAssets(fetched.html ?? '', pageUrl))
+        ? await stages.run('parseHtml', () => extractAssets(fetched.html ?? '', pageUrl))
         : null;
     const staticComplete = Boolean(fetched?.ok && !fetched.truncated && staticAssets);
 
@@ -247,7 +253,7 @@ export class AnalysisOrchestrator {
               : fullyAnalysed
                 ? {
                     status: 'no',
-                    evidence: `No payment provider (Stripe, PayPal, Square...) or card fields found on the analysed pages (${allPages.length})`,
+                    evidence: `No payment provider (Stripe, PayPal, Square...) or card fields found on ${pageCount(allPages)}`,
                   }
                 : { status: 'unknown', evidence: 'Site could not be fully analysed' };
       const marketing = technology.detectedSignatures.find((s) => s.category === 'marketing');
@@ -261,8 +267,7 @@ export class AnalysisOrchestrator {
           : fullyAnalysed
             ? {
                 status: 'no',
-                evidence:
-                  'No email marketing, CRM or messaging automation signatures found on the analysed pages',
+                evidence: `No email marketing, CRM or messaging automation signatures found on ${pageCount(allPages)}`,
               }
             : { status: 'unknown', evidence: 'Site could not be fully analysed' };
       const textSource = rendered ?? staticAssets;

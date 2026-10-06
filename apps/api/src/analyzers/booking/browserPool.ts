@@ -10,6 +10,8 @@ export interface BrowserPoolOptions {
   size: number;
   executablePath?: string;
   logger: Logger;
+  /** Route browser traffic through HTTPS_PROXY/NO_PROXY when set (default true). */
+  useEnvProxy?: boolean;
 }
 
 /** Converts proxy env vars into Playwright's proxy option (needed only behind an egress proxy). */
@@ -43,7 +45,7 @@ export class BrowserPool {
       .launch({
         headless: true,
         ...(this.opts.executablePath ? { executablePath: this.opts.executablePath } : {}),
-        proxy: proxyFromEnv(),
+        proxy: this.opts.useEnvProxy === false ? undefined : proxyFromEnv(),
         args: ['--disable-dev-shm-usage', '--no-first-run', '--disable-extensions'],
       })
       .then((b) => {

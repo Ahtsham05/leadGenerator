@@ -85,6 +85,7 @@ export type TechCategory = (typeof TECH_CATEGORIES)[number];
 /** Pipeline stages, used for error records and per-stage duration metrics. */
 export const ANALYSIS_STAGES = [
   'fetchPage',
+  'parseHtml',
   'techDetector',
   'siteSignals',
   'whatsappDetector',
