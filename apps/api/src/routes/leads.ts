@@ -4,9 +4,11 @@ import { z } from 'zod';
 import {
   AnalyzeLeadBodySchema,
   ListLeadsQuerySchema,
+  UpdateLeadBodySchema,
   type AnalyzeLeadBody,
   type AnalyzeLeadResponse,
   type ListLeadsQuery,
+  type UpdateLeadBody,
 } from '@lead/shared';
 import {
   assertPublicHost,
@@ -92,11 +94,55 @@ export function leadsRouter(deps: LeadsRouterDeps): Router {
     res.json(await deps.repo.list(queryOf<ListLeadsQuery>(res)));
   });
 
+  // Registered before "/:id" so "stats" is never parsed as an id.
+  r.get('/stats', async (_req, res) => {
+    res.json(await deps.repo.stats());
+  });
+
   r.get('/:id', validateParams(IdParams), async (_req, res) => {
     const { id } = paramsOf<z.infer<typeof IdParams>>(res);
     const lead = await deps.repo.findById(id);
     if (!lead) throw notFound('Lead');
     res.json(lead);
+  });
+
+  r.patch(
+    '/:id',
+    validateParams(IdParams),
+    validateBody(UpdateLeadBodySchema),
+    async (_req, res) => {
+      const { id } = paramsOf<z.infer<typeof IdParams>>(res);
+      const lead = await deps.repo.updateCrm(id, bodyOf<UpdateLeadBody>(res));
+      if (!lead) throw notFound('Lead');
+      res.json(lead);
+    },
+  );
+
+  r.post('/:id/reanalyze', analyzeLimiter, validateParams(IdParams), async (_req, res) => {
+    const { id } = paramsOf<z.infer<typeof IdParams>>(res);
+    const lead = await deps.repo.findById(id);
+    if (!lead) throw notFound('Lead');
+    if (!lead.website) throw badRequest('This lead has no website to analyse');
+    await deps.repo.setPending(id);
+    let jobId: string | null;
+    try {
+      ({ jobId } = await deps.enqueue(id));
+    } catch {
+      throw new AppError(503, 'QUEUE_UNAVAILABLE', 'The analysis queue is unavailable');
+    }
+    const response: AnalyzeLeadResponse = {
+      id,
+      jobId,
+      analysisStatus: 'pending',
+      enqueued: true,
+    };
+    res.status(202).json(response);
+  });
+
+  r.delete('/:id', validateParams(IdParams), async (_req, res) => {
+    const { id } = paramsOf<z.infer<typeof IdParams>>(res);
+    if (!(await deps.repo.remove(id))) throw notFound('Lead');
+    res.status(204).end();
   });
 
   return r;

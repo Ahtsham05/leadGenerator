@@ -98,3 +98,14 @@ export const ANALYSIS_STAGES = [
   'save',
 ] as const;
 export type AnalysisStage = (typeof ANALYSIS_STAGES)[number];
+
+/** Fields the lead list can be sorted by. */
+export const LEAD_SORT_FIELDS = [
+  'score',
+  'createdAt',
+  'updatedAt',
+  'reviewCount',
+  'rating',
+  'mobileScore',
+  'businessName',
+] as const;

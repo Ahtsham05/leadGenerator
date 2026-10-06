@@ -135,6 +135,92 @@ describe('API', () => {
     expect((await request(ctx.app).get('/api/leads?priority=urgent').set(auth)).status).toBe(400);
   });
 
+  it('GET /leads/stats is not mistaken for an id', async () => {
+    await ctx.repo.upsertManual({
+      businessName: 'A',
+      website: 'https://a.example/',
+      websiteKey: 'a.example',
+    });
+    const r = await request(ctx.app).get('/api/leads/stats').set(auth);
+    expect(r.status).toBe(200);
+    expect(r.body).toMatchObject({ total: 1, inProgress: 1, analyzed: 0 });
+    expect(r.body.scoreDistribution).toHaveLength(10);
+    expect(r.body.createdPerDay).toHaveLength(30);
+  });
+
+  it('PATCH /leads/:id updates CRM fields and validates the body', async () => {
+    const { lead } = await ctx.repo.upsertManual({
+      businessName: 'A',
+      website: 'https://a.example/',
+      websiteKey: 'a.example',
+    });
+    const ok = await request(ctx.app)
+      .patch(`/api/leads/${lead.id}`)
+      .set(auth)
+      .send({
+        leadStatus: 'contacted',
+        tags: ['luxury', 'luxury', 'miami'],
+        note: 'Called, call back Friday',
+      });
+    expect(ok.status).toBe(200);
+    expect(ok.body.leadStatus).toBe('contacted');
+    expect(ok.body.tags).toEqual(['luxury', 'miami']);
+    expect(ok.body.notes).toHaveLength(1);
+    expect(ok.body.notes[0].text).toBe('Called, call back Friday');
+    expect(ok.body.lastContactedAt).not.toBeNull();
+
+    for (const body of [{}, { leadStatus: 'bogus' }, { note: '   ' }, { tags: ['x'.repeat(41)] }]) {
+      const bad = await request(ctx.app).patch(`/api/leads/${lead.id}`).set(auth).send(body);
+      expect(bad.status, JSON.stringify(body)).toBe(400);
+    }
+    const missing = await request(ctx.app)
+      .patch('/api/leads/000000000000000000000000')
+      .set(auth)
+      .send({ leadStatus: 'won' });
+    expect(missing.status).toBe(404);
+  });
+
+  it('POST /leads/:id/reanalyze re-queues an existing lead', async () => {
+    const { lead } = await ctx.repo.upsertManual({
+      businessName: 'A',
+      website: 'https://a.example/',
+      websiteKey: 'a.example',
+    });
+    await ctx.repo.saveAnalysis(lead.id, { analysisStatus: 'completed' } as never);
+    const r = await request(ctx.app).post(`/api/leads/${lead.id}/reanalyze`).set(auth);
+    expect(r.status).toBe(202);
+    expect(r.body).toMatchObject({ id: lead.id, analysisStatus: 'pending', enqueued: true });
+    expect(ctx.enqueue).toHaveBeenCalledWith(lead.id);
+    expect((await ctx.repo.findById(lead.id))?.analysisStatus).toBe('pending');
+    expect(
+      (await request(ctx.app).post('/api/leads/000000000000000000000000/reanalyze').set(auth))
+        .status,
+    ).toBe(404);
+  });
+
+  it('POST /leads/:id/reanalyze reports an unavailable queue', async () => {
+    const { lead } = await ctx.repo.upsertManual({
+      businessName: 'A',
+      website: 'https://a.example/',
+      websiteKey: 'a.example',
+    });
+    ctx.enqueue.mockRejectedValueOnce(new Error('redis down'));
+    const r = await request(ctx.app).post(`/api/leads/${lead.id}/reanalyze`).set(auth);
+    expect(r.status).toBe(503);
+    expect(r.body.error.code).toBe('QUEUE_UNAVAILABLE');
+  });
+
+  it('DELETE /leads/:id removes the lead', async () => {
+    const { lead } = await ctx.repo.upsertManual({
+      businessName: 'A',
+      website: 'https://a.example/',
+      websiteKey: 'a.example',
+    });
+    expect((await request(ctx.app).delete(`/api/leads/${lead.id}`).set(auth)).status).toBe(204);
+    expect(await ctx.repo.findById(lead.id)).toBeNull();
+    expect((await request(ctx.app).delete(`/api/leads/${lead.id}`).set(auth)).status).toBe(404);
+  });
+
   it('unknown routes return the error shape', async () => {
     const r = await request(ctx.app).get('/api/nope').set(auth);
     expect(r.status).toBe(404);

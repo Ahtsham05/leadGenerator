@@ -33,6 +33,7 @@ export function createApp(deps: AppDeps): Express {
   app.use(
     cors({
       origin: deps.config.webOrigin,
+      methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
       credentials: false,
       allowedHeaders: ['Authorization', 'Content-Type'],
     }),

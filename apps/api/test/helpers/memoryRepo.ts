@@ -7,9 +7,12 @@ import {
   type AnalysisError,
   type AnalysisStatus,
   type Lead,
+  type LeadStats,
   type ListLeadsQuery,
   type Paginated,
+  type UpdateLeadBody,
 } from '@lead/shared';
+import { computeStats } from '../../src/services/leadStats.js';
 import type {
   LeadAnalysisUpdate,
   LeadRepository,
@@ -136,5 +139,23 @@ export class MemoryLeadRepository implements LeadRepository {
   async recordFailure(id: string, status: AnalysisStatus, error: AnalysisError) {
     const l = this.leads.get(id);
     this.set(id, { analysisStatus: status, analysisErrors: [...(l?.analysisErrors ?? []), error] });
+  }
+  async stats(): Promise<LeadStats> {
+    return computeStats([...this.leads.values()]);
+  }
+  async updateCrm(id: string, patch: UpdateLeadBody) {
+    const l = this.leads.get(id);
+    if (!l) return null;
+    const now = new Date();
+    if (patch.leadStatus) {
+      l.leadStatus = patch.leadStatus;
+      if (patch.leadStatus === 'contacted') l.lastContactedAt = now;
+    }
+    if (patch.tags) l.tags = [...new Set(patch.tags)];
+    if (patch.note) l.notes = [...l.notes, { text: patch.note, at: now }];
+    return l;
+  }
+  async remove(id: string) {
+    return this.leads.delete(id);
   }
 }

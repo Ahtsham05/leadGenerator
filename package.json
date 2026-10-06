@@ -12,9 +12,10 @@
     "node": ">=22.19"
   },
   "scripts": {
-    "build": "npm run build -w @lead/shared && npm run build -w @lead/api",
+    "build": "npm run build -w @lead/shared && npm run build -w @lead/api && npm run build -w @lead/web",
     "dev:api": "npm run dev -w @lead/api",
     "dev:worker": "npm run dev:worker -w @lead/api",
+    "dev:web": "npm run dev -w @lead/web",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -27,6 +28,7 @@
     "@types/node": "^22.20.5",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.13.0",
     "prettier": "^3.9.9",
     "tsx": "^4.23.15",

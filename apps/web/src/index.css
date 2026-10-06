@@ -1,0 +1,238 @@
+@import '@fontsource-variable/instrument-sans';
+@import '@fontsource-variable/bricolage-grotesque';
+@import 'tailwindcss';
+
+/*
+ * Visual language: asphalt and lane markings. Dark ink on cool paper, one lane-yellow
+ * accent that is only ever used to mark "this is the thing" (active nav, score needle,
+ * focus). Everything else stays quiet so the data is the loudest thing on screen.
+ */
+:root {
+  color-scheme: light;
+  --paper: #f3f5f4;
+  --surface: #ffffff;
+  --surface-2: #f7f8f8;
+  --ink: #14202b;
+  --ink-2: #4a5866;
+  --ink-3: #6f7c88;
+  --line: #dde3e7;
+  --line-strong: #c5ced5;
+  --lane: #f2b705;
+  --lane-ink: #14202b;
+
+  --hot: #c8321f;
+  --high: #d96a12;
+  --medium: #2a78d6;
+  --low: #6f7c88;
+  --good: #0a7d4f;
+  --warn: #a86a00;
+  --bad: #c8321f;
+
+  --series: #2a78d6;
+  --ramp-1: #86b6ef;
+  --ramp-2: #5598e7;
+  --ramp-3: #2a78d6;
+  --ramp-4: #1c5cab;
+  --ramp-5: #104281;
+  --track: #e6ebef;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --paper: #0d1319;
+  --surface: #141c24;
+  --surface-2: #19232d;
+  --ink: #edf1f4;
+  --ink-2: #aab6c1;
+  --ink-3: #8593a0;
+  --line: #25313c;
+  --line-strong: #364552;
+  --lane: #f2b705;
+  --lane-ink: #14202b;
+
+  --hot: #ef6a56;
+  --high: #f0903f;
+  --medium: #5a9bec;
+  --low: #8593a0;
+  --good: #3fc088;
+  --warn: #e0a43a;
+  --bad: #ef6a56;
+
+  --series: #3987e5;
+  --ramp-1: #184f95;
+  --ramp-2: #1c5cab;
+  --ramp-3: #2a78d6;
+  --ramp-4: #5598e7;
+  --ramp-5: #86b6ef;
+  --track: #1f2b36;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --paper: #0d1319;
+    --surface: #141c24;
+    --surface-2: #19232d;
+    --ink: #edf1f4;
+    --ink-2: #aab6c1;
+    --ink-3: #8593a0;
+    --line: #25313c;
+    --line-strong: #364552;
+    --hot: #ef6a56;
+    --high: #f0903f;
+    --medium: #5a9bec;
+    --low: #8593a0;
+    --good: #3fc088;
+    --warn: #e0a43a;
+    --bad: #ef6a56;
+    --series: #3987e5;
+    --ramp-1: #184f95;
+    --ramp-2: #1c5cab;
+    --ramp-3: #2a78d6;
+    --ramp-4: #5598e7;
+    --ramp-5: #86b6ef;
+    --track: #1f2b36;
+  }
+}
+
+@theme inline {
+  --font-sans: 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display:
+    'Bricolage Grotesque Variable', 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-lane: var(--lane);
+  --color-lane-ink: var(--lane-ink);
+  --color-hot: var(--hot);
+  --color-high: var(--high);
+  --color-medium: var(--medium);
+  --color-low: var(--low);
+  --color-good: var(--good);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+  --color-series: var(--series);
+  --color-track: var(--track);
+}
+
+@layer base {
+  html {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    min-height: 100dvh;
+    background: var(--paper);
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+    font-weight: 650;
+    color: var(--ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--lane);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--lane) 45%, transparent);
+  }
+}
+
+@layer components {
+  /* Numbers in columns line up; big standalone numbers use proportional figures. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Lane marking: the dashed centre line used as a quiet divider. */
+  .lane-divider {
+    height: 2px;
+    background-image: linear-gradient(to right, var(--line-strong) 60%, transparent 0);
+    background-size: 14px 2px;
+    background-repeat: repeat-x;
+  }
+
+  .scroll-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+
+  @keyframes shimmer {
+    to {
+      background-position-x: -200%;
+    }
+  }
+  .skeleton {
+    background: linear-gradient(100deg, var(--track) 40%, var(--surface-2) 50%, var(--track) 60%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s linear infinite;
+    border-radius: 6px;
+  }
+
+  @keyframes pulse-dot {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.35;
+    }
+  }
+  .pulse-dot {
+    animation: pulse-dot 1.4s ease-in-out infinite;
+  }
+
+  @keyframes dialog-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px) scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes overlay-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  .dialog-in {
+    animation: dialog-in 160ms ease-out;
+  }
+  .overlay-in {
+    animation: overlay-in 160ms ease-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

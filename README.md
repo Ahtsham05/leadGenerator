@@ -4,8 +4,9 @@ Finds local businesses (default niche: independent car rental, USA and UK), anal
 business website, scores the opportunity it represents for website / online booking /
 WhatsApp automation / AI assistant work, and produces an evidence-based opportunity report.
 
-**Status: Phase 1 (foundation and core analyzers) is done.** Places discovery (Phase 2), the
-dashboard (Phase 3) and outreach/CRM (Phase 4) come next.
+**Status: Phase 1 (foundation and core analyzers) and the Phase 3 dashboard are done.** Places
+discovery (Phase 2) and AI outreach drafts (Phase 4) come next. Basic CRM (status, tags, notes) is
+already in the dashboard.
 
 ## Ground rules the code enforces
 
@@ -50,6 +51,7 @@ dashboard (Phase 3) and outreach/CRM (Phase 4) come next.
                  └──────────────────────────────────────────────────────────────────┘
   packages/shared: Lead zod schema and types, API schemas, scoring weights, scoring engine,
                    opportunity builder, niche profiles (used by the API and the web app)
+  apps/web:        React 19 + TypeScript + Tailwind v4 + RTK Query dashboard (Vite)
 ```
 
 Repository layout:
@@ -63,6 +65,8 @@ apps/api/src
   queue/            analysisQueue, analysisProcessor, analysisWorker, redis
   models/ services/ routes/ middleware/ config/ lib/
 apps/api/test       fixtures/ (HTML + PSI JSON), helpers/, e2e/
+apps/web/src        pages/ (Overview, Leads, LeadDetail, System, Login), components/ (ui, charts,
+                    layout), store/ (RTK Query API client), lib/ (formatting and lead helpers)
 packages/shared/src enums, lead, api, niche, scoring/
 ```
 
@@ -77,6 +81,33 @@ cp .env.example .env                 # then set ADMIN_ACCESS_TOKEN and API keys
 docker compose up -d                 # MongoDB 7 + Redis 7
 npm run dev:api                      # API on :4000, worker runs in-process by default
 ```
+
+### Dashboard
+
+```bash
+npm run dev:api     # terminal 1: API on :4000
+npm run dev:web     # terminal 2: dashboard on http://localhost:5173
+```
+
+Open http://localhost:5173 and sign in with your `ADMIN_ACCESS_TOKEN`. In development the
+dashboard talks to the API through Vite's proxy, so no CORS setup is needed. The token is kept in
+this browser's local storage only when "Remember me" is ticked.
+
+What is in it:
+
+| Screen   | What it does                                                                                                                                                                               |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Overview | The best opportunities right now, KPIs, priority mix, score distribution, leads per day, booking / WhatsApp / website quality coverage, pipeline, top cities and technologies              |
+| Leads    | Search, priority chips and more filters (all saved in the URL), sortable columns, pagination, CSV export of the current filter                                                             |
+| Lead     | Score dial, services to offer with evidence, how the score adds up, speed vitals, what the site has, technology, screenshot, status / tags / notes, analysis log, analyze again and delete |
+| System   | Live status of the API, MongoDB and Redis                                                                                                                                                  |
+
+Use "Analyze website" (top right) to add a business. Pages poll by themselves while an analysis
+is queued or running.
+
+For a production build run `npm run build -w @lead/web` and serve `apps/web/dist` with any static
+host. Set `VITE_API_URL` at build time to the API's public address, and set the API's `WEB_ORIGIN`
+to the address the dashboard is served from. Unknown paths must fall back to `index.html`.
 
 To run the worker as its own process, set `RUN_WORKER_IN_API=false` and run `npm run dev:worker`.
 
@@ -99,15 +130,19 @@ curl -s "localhost:4000/api/leads?priority=hot&maxMobileScore=50&bookingStatus=n
 A typical analysis takes 20 to 60 seconds, most of it PageSpeed Insights. Screenshots are
 served at `/api/uploads/<screenshotPath>`, behind the same auth.
 
-### Endpoints (Phase 1)
+### Endpoints
 
-| Method | Path                 | Notes                                                                                                                                                                                                                                                    |
-| ------ | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET    | `/api/health`        | Public. `{status, services: {mongo, redis}}`                                                                                                                                                                                                             |
-| POST   | `/api/leads/analyze` | `{businessName, website, city?, country?, rating?, reviewCount?}`. Upserts by website and enqueues analysis. Returns 201 (new) or 202 (existing)                                                                                                         |
-| GET    | `/api/leads/:id`     | Full lead with evidence                                                                                                                                                                                                                                  |
-| GET    | `/api/leads`         | `page, pageSize (max 100), sort (score, createdAt, updatedAt, reviewCount, rating, mobileScore, businessName), order, priority, city, status, leadStatus, technology, bookingStatus, whatsapp, minScore, maxMobileScore, minReviews, search, hasWebsite` |
-| GET    | `/api/uploads/*`     | Screenshots                                                                                                                                                                                                                                              |
+| Method | Path                       | Notes                                                                                                                                                                                                                                                    |
+| ------ | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/health`              | Public. `{status, services: {mongo, redis}}`                                                                                                                                                                                                             |
+| POST   | `/api/leads/analyze`       | `{businessName, website, city?, country?, rating?, reviewCount?}`. Upserts by website and enqueues analysis. Returns 201 (new) or 202 (existing)                                                                                                         |
+| GET    | `/api/leads/:id`           | Full lead with evidence                                                                                                                                                                                                                                  |
+| GET    | `/api/leads`               | `page, pageSize (max 100), sort (score, createdAt, updatedAt, reviewCount, rating, mobileScore, businessName), order, priority, city, status, leadStatus, technology, bookingStatus, whatsapp, minScore, maxMobileScore, minReviews, search, hasWebsite` |
+| GET    | `/api/leads/stats`         | Counts and distributions for the Overview screen (priority, status, booking, WhatsApp, score buckets, cities, technologies, leads per day)                                                                                                               |
+| PATCH  | `/api/leads/:id`           | CRM edits only: `{leadStatus?, tags?, note?}`. At least one is required. `note` appends a timestamped note, `tags` replaces the list                                                                                                                     |
+| POST   | `/api/leads/:id/reanalyze` | Queues a fresh analysis for an existing lead. Returns 202                                                                                                                                                                                                |
+| DELETE | `/api/leads/:id`           | Deletes a lead. Returns 204                                                                                                                                                                                                                              |
+| GET    | `/api/uploads/*`           | Screenshots                                                                                                                                                                                                                                              |
 
 Every error has the same shape: `{"error": {"code": "VALIDATION_ERROR", "message": "...", "details": [...]}}`.
 
