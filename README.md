@@ -68,7 +68,7 @@ packages/shared/src enums, lead, api, niche, scoring/
 
 ## Setup
 
-Requirements: Node.js 22.9 or newer (the scripts use `--env-file-if-exists`), Docker (for MongoDB and Redis).
+Requirements: Node.js 22.19 or newer (undici 8 and Vitest need it), Docker with the Compose plugin (on Ubuntu: `sudo apt install docker-compose-v2`).
 
 ```bash
 npm install
