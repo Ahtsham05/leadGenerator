@@ -1,0 +1,36 @@
+{
+  "name": "lead-intelligence",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Lead Intelligence and Scoring System for local-business web/automation services",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "build": "npm run build -w @lead/shared && npm run build -w @lead/api",
+    "dev:api": "npm run dev -w @lead/api",
+    "dev:worker": "npm run dev:worker -w @lead/api",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "npm run build -w @lead/shared && npm run typecheck --workspaces --if-present",
+    "test": "npm run build -w @lead/shared && vitest run",
+    "check": "npm run lint && npm run typecheck && npm run test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22.20.5",
+    "eslint": "^10.12.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.9",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.1",
+    "vitest": "^5.0.3"
+  }
+}
