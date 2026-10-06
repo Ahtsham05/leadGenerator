@@ -16,6 +16,11 @@ async function main() {
     config.logLevel,
     config.env === 'development' && process.stdout.isTTY,
   );
+  if (config.adminToken.startsWith('change-me')) {
+    logger.warn(
+      'ADMIN_ACCESS_TOKEN is still the .env.example placeholder; set your own token in .env',
+    );
+  }
   await connectMongo(config.mongoUri, logger);
   const redis = createRedisConnection(config.redisUrl);
   const queue = createAnalysisQueue(redis);

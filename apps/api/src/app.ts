@@ -46,6 +46,7 @@ export function createApp(deps: AppDeps): Express {
         err || res.statusCode >= 500 ? 'error' : res.statusCode >= 400 ? 'warn' : 'info',
       serializers: {
         req: (req: { method: string; url: string }) => ({ method: req.method, url: req.url }),
+        res: (res: { statusCode: number }) => ({ statusCode: res.statusCode }),
       },
     }),
   );
