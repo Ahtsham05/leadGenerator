@@ -9,7 +9,7 @@
     "apps/*"
   ],
   "engines": {
-    "node": ">=20.11"
+    "node": ">=22.9"
   },
   "scripts": {
     "build": "npm run build -w @lead/shared && npm run build -w @lead/api",

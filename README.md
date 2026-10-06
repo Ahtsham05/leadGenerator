@@ -68,7 +68,7 @@ packages/shared/src enums, lead, api, niche, scoring/
 
 ## Setup
 
-Requirements: Node.js 20.11 or newer (22 recommended), Docker (for MongoDB and Redis).
+Requirements: Node.js 22.9 or newer (the scripts use `--env-file-if-exists`), Docker (for MongoDB and Redis).
 
 ```bash
 npm install
