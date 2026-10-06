@@ -141,16 +141,13 @@ describe.skipIf(!REDIS)('analyze flow (e2e)', () => {
 
   it('POST /analyze -> worker -> GET lead with full analysis', async () => {
     const auth = { Authorization: `Bearer ${TOKEN}` };
-    const post = await request(app)
-      .post('/api/leads/analyze')
-      .set(auth)
-      .send({
-        businessName: 'Sunshine Car Rental',
-        website: site.url,
-        city: 'Orlando',
-        reviewCount: 240,
-        rating: 4.6,
-      });
+    const post = await request(app).post('/api/leads/analyze').set(auth).send({
+      businessName: 'Sunshine Car Rental',
+      website: site.url,
+      city: 'Orlando',
+      reviewCount: 240,
+      rating: 4.6,
+    });
     expect(post.status).toBe(201);
     const id: string = post.body.id;
 

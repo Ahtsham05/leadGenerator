@@ -90,7 +90,7 @@ export class MongoLeadRepository implements LeadRepository {
       { $set: set, $setOnInsert: { websiteKey: input.websiteKey, sourceType: 'manual' } },
       {
         upsert: true,
-        new: true,
+        returnDocument: 'after',
         includeResultMetadata: true,
         lean: true,
         setDefaultsOnInsert: true,

@@ -2,6 +2,7 @@
   "name": "lead-intelligence",
   "private": true,
   "version": "0.1.0",
+  "type": "module",
   "description": "Lead Intelligence and Scoring System for local-business web/automation services",
   "workspaces": [
     "packages/*",

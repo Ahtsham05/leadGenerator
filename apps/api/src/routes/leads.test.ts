@@ -53,15 +53,12 @@ describe('API', () => {
   });
 
   it('POST /analyze creates a lead and enqueues analysis', async () => {
-    const r = await request(ctx.app)
-      .post('/api/leads/analyze')
-      .set(auth)
-      .send({
-        businessName: 'Miami Exotic',
-        website: 'www.MiamiExotic.example/',
-        city: 'Miami',
-        reviewCount: 120,
-      });
+    const r = await request(ctx.app).post('/api/leads/analyze').set(auth).send({
+      businessName: 'Miami Exotic',
+      website: 'www.MiamiExotic.example/',
+      city: 'Miami',
+      reviewCount: 120,
+    });
     expect(r.status).toBe(201);
     expect(r.body).toMatchObject({ jobId: 'job-1', analysisStatus: 'pending', enqueued: true });
     const lead = await ctx.repo.findById(r.body.id);

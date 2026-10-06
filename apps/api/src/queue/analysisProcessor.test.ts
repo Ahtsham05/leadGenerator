@@ -2,7 +2,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { ANALYSIS_VERSION } from '@lead/shared';
 import { MemoryLeadRepository, makeLead } from '../../test/helpers/memoryRepo.js';
 import { silentLogger } from '../../test/helpers/silentLogger.js';
-import type { AnalysisOrchestrator, OrchestratorOutcome } from '../orchestrator/analysisOrchestrator.js';
+import type {
+  AnalysisOrchestrator,
+  OrchestratorOutcome,
+} from '../orchestrator/analysisOrchestrator.js';
 import type { LeadAnalysisUpdate } from '../services/leadRepository.js';
 import { createAnalysisProcessor, RetryableJobError } from './analysisProcessor.js';
 

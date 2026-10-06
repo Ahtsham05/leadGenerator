@@ -58,6 +58,10 @@ const EnvSchema = z
     BROWSER_PAGE_TIMEOUT_MS: z.coerce.number().int().min(5000).default(25000),
     PLAYWRIGHT_EXECUTABLE_PATH: optionalSecret,
   })
+  .refine((e) => e.NODE_ENV !== 'production' || !e.ADMIN_ACCESS_TOKEN.startsWith('change-me'), {
+    message: 'ADMIN_ACCESS_TOKEN still has the .env.example placeholder value',
+    path: ['ADMIN_ACCESS_TOKEN'],
+  })
   .refine((e) => e.ANALYSIS_MAX_DELAY_MS >= e.ANALYSIS_MIN_DELAY_MS, {
     message: 'ANALYSIS_MAX_DELAY_MS must be >= ANALYSIS_MIN_DELAY_MS',
     path: ['ANALYSIS_MAX_DELAY_MS'],
